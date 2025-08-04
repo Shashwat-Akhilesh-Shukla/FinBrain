@@ -1,2 +1,6 @@
 .env
 __pycache__
+.conda/
+qdrant_storage;C/
+data/
+.log/

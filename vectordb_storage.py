@@ -102,12 +102,5 @@ def query_db(company_name, query_text, top_k=5):
     return results
 
 if __name__ == "__main__":
-    pdf_directory = "/Users/shashwatshukla/Desktop/Personal/RAGPROJECT/data/transcripts"
+    pdf_directory = "data/transcripts"
     store_pdfs_in_qdrant(pdf_directory)
-    # company = "bhartiairtel"
-    # query_text = "consolidated revenue?"
-    # results = query_db(company, query_text)
-
-    # print("\n🔍 Query Results:")
-    # for res in results:
-    #     print(f"Page: {res['page']} | Score: {res['score']:.2f} | Snippet: {res['text']}")
