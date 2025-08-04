@@ -132,5 +132,3 @@ Fix something, improve the UX, or optimize the AI prompt chaining — but don’
 ## 🛡 License
 
 MIT License — Use freely. Break it, fork it, profit from it.
-- Deploy instructions for Hugging Face or Streamlit Cloud
-```
