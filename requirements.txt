@@ -1,5 +1,6 @@
 pymupdf==1.26.1
 krutrim_cloud==0.7.0
+opencv-python-headless==4.11.0.86
 python-dotenv==1.0.1
 pinecone-client==5.0.1
 sentence_transformers==3.4.1
