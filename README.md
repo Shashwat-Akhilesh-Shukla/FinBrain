@@ -12,7 +12,7 @@ Built with **Streamlit** for an intuitive interface and containerized with **Doc
 
 Watch FinBrain in action:
 
-[![Watch the demo](https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid=60dc4659-647d-48ec-b4a6-9df2b8fe9a0c)
+Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid=60dc4659-647d-48ec-b4a6-9df2b8fe9a0c
 
 ---
 
@@ -67,25 +67,11 @@ Create a `.env` file with the following:
 API_KEY=your_krutrim_api_key_here
 ```
 
-### 3. Start Qdrant
+### 3. One Command run:-
 
 ```bash
-docker run -p 6333:6333 qdrant/qdrant
+docker compose up --build
 ```
-
-### 4. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Run the App
-
-```bash
-streamlit run app.py
-```
-
----
 
 ## 🧪 Example Workflow
 
