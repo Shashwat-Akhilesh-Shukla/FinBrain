@@ -1,7 +1,7 @@
 pymupdf==1.26.1
 krutrim_cloud==0.7.0
 python-dotenv==1.0.1
-qdrant_client==1.13.2
+pinecone-client==5.0.1
 sentence_transformers==3.4.1
 streamlit==1.42.2
 tqdm==4.67.1

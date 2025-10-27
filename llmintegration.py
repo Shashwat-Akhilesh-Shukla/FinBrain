@@ -1,4 +1,4 @@
-from vectordb_storage import query_db
+from vectordb_storage import store_pdfs_in_pinecone, query_db
 from krutrim_cloud import KrutrimCloud
 from dotenv import load_dotenv
 import os

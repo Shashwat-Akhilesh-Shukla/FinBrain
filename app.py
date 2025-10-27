@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from vectordb_storage import store_pdfs_in_qdrant, query_db
+from vectordb_storage import store_pdfs_in_pinecone, query_db
 from krutrim_cloud import KrutrimCloud
 from dotenv import load_dotenv
 
@@ -23,8 +23,8 @@ if uploaded_files:
             f.write(uploaded_file.read())
     st.sidebar.success(f"{len(uploaded_files)} PDFs uploaded successfully!")
     if st.sidebar.button("🔄 Process PDFs"):
-        store_pdfs_in_qdrant(pdf_directory)
-        st.sidebar.success("✅ PDFs stored in Qdrant successfully!")
+        store_pdfs_in_pinecone(pdf_directory)
+        st.sidebar.success("✅ PDFs stored in Pinecone successfully!")
 
 # Main Section: Querying
 st.header("🔍 Query Financial Reports")

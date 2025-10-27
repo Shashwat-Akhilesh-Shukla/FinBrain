@@ -2,25 +2,33 @@ import fitz
 import os
 from uuid import uuid4
 from tqdm import tqdm
-from qdrant_client import QdrantClient
-from qdrant_client.http import exceptions
-from qdrant_client.models import PointStruct, Distance, VectorParams, Filter, FieldCondition, MatchValue
+from pinecone import Pinecone, ServerlessSpec
 from sentence_transformers import SentenceTransformer
+import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 LOG_FILE = "processed_pdfs.log"
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L12-v2')
-client = QdrantClient("http://localhost:6333")
-COLLECTION_NAME = "transcripts"
 
-try:
-    client.get_collection(COLLECTION_NAME)
-    print("✅ Collection already exists. Skipping recreation.")
-except exceptions.UnexpectedResponse:
-    client.create_collection(
-        collection_name=COLLECTION_NAME,
-        vectors_config=VectorParams(size=model.get_sentence_embedding_dimension(), distance=Distance.COSINE),
+# Initialize Pinecone client
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+INDEX_NAME = "transcripts"
+
+# Check if index exists, create if not
+if INDEX_NAME not in pc.list_indexes().names():
+    pc.create_index(
+        name=INDEX_NAME,
+        dimension=model.get_sentence_embedding_dimension(),
+        metric="cosine",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1")
     )
-    print("🆕 Collection created successfully!")
+    print("🆕 Index created successfully!")
+else:
+    print("✅ Index already exists. Skipping recreation.")
+
+index = pc.Index(INDEX_NAME)
 
 def load_processed_pdfs():
     """Load the set of already processed PDFs from log file."""
@@ -46,17 +54,17 @@ def extract_text_by_page(pdf_path):
     
     return pages
 
-def store_pdfs_in_qdrant(pdf_directory):
-    points = []
+def store_pdfs_in_pinecone(pdf_directory):
+    vectors = []
     pdf_files = [f for f in os.listdir(pdf_directory) if f.endswith(".pdf")]
 
     processed_pdfs = load_processed_pdfs()
-    
+
     new_processed_pdfs = set()
-    
+
     for pdf_file in tqdm(pdf_files, desc="Processing PDFs"):
         company_name = os.path.splitext(pdf_file)[0]
-        
+
         if pdf_file in processed_pdfs:
             print(f"⏭️ Skipping {pdf_file}, already logged as processed.")
             continue
@@ -69,38 +77,34 @@ def store_pdfs_in_qdrant(pdf_directory):
             page_num = page["page"]
             embedding = model.encode(text)
 
-            points.append(
-                PointStruct(
-                    id=str(uuid4()),
-                    vector=embedding.tolist(),
-                    payload={"company": company_name, "text": text, "page": page_num}
-                )
-            )
+            vectors.append({
+                "id": str(uuid4()),
+                "values": embedding.tolist(),
+                "metadata": {"company": company_name, "text": text, "page": page_num}
+            })
 
         new_processed_pdfs.add(pdf_file)
 
-    if points:
-        client.upsert(collection_name=COLLECTION_NAME, points=points)
+    if vectors:
+        index.upsert(vectors=vectors)
         update_log_file(new_processed_pdfs)
-        print("✅ New data stored in Qdrant successfully!")
+        print("✅ New data stored in Pinecone successfully!")
     else:
         print("✅ No new PDFs to process.")
 
 def query_db(company_name, query_text, top_k=5):
     embedding = model.encode(query_text)
 
-    search_result = client.search(
-        collection_name=COLLECTION_NAME,
-        query_vector=embedding.tolist(),
-        limit=top_k,
-        query_filter=Filter(
-            must=[FieldCondition(key="company", match=MatchValue(value=company_name))]
-        ),
+    search_result = index.query(
+        vector=embedding.tolist(),
+        top_k=top_k,
+        filter={"company": {"$eq": company_name}},
+        include_metadata=True
     )
 
-    results = [{"text": hit.payload["text"], "page": hit.payload["page"], "score": hit.score} for hit in search_result]
+    results = [{"text": match.metadata["text"], "page": match.metadata["page"], "score": match.score} for match in search_result.matches]
     return results
 
 if __name__ == "__main__":
     pdf_directory = "data/transcripts"
-    store_pdfs_in_qdrant(pdf_directory)
+    store_pdfs_in_pinecone(pdf_directory)
