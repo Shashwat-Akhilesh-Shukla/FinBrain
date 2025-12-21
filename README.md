@@ -10,7 +10,7 @@ Built with **Streamlit** for an intuitive interface and containerized with **Doc
 
 ## 🚀 Demo
 
-Watch FinBrain in action:
+Live Demo(Limited API credits) : https://finbrain.streamlit.app/
 
 Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid=60dc4659-647d-48ec-b4a6-9df2b8fe9a0c
 
