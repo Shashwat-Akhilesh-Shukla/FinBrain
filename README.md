@@ -20,7 +20,7 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 
 ### 1. Document Ingestion & Vectorization
 - Upload PDFs of financial reports.
-- Each page is extracted and embedded using `all-MiniLM-L12-v2` via **Sentence Transformers**.
+- Each page is extracted and embedded using `jina-embeddings-v2-base-en` via **Jina Embeddings API**.
 - Embeddings are stored in **Pinecone** under company-specific payloads.
 
 ### 2. Vector Search
@@ -36,7 +36,7 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 | Layer        | Technology                                |
 |--------------|--------------------------------------------|
 | Interface    | Streamlit                                  |
-| Embeddings   | Sentence-Transformers (`MiniLM-L12-v2`)    |
+| Embeddings   | Jina Embeddings API (`jina-embeddings-v2-base-en`)|
 | Vector DB    | Pinecone                                   |
 | LLM API      | Gemini 2.5 Flash                           |
 | Parsing PDFs | PyMuPDF (`fitz`)                           |
@@ -51,6 +51,7 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 - Python 3.9+
 - Docker
 - Gemini API Key (set in `.env` as `API_KEY`)
+- Jina API Key (set in `.env` as `JINA_API_KEY`)
 
 ### 1. Clone the Repository
 
@@ -65,6 +66,7 @@ Create a `.env` file with the following:
 
 ```env
 API_KEY=your_gemini_api_key_here
+JINA_API_KEY=your_jina_api_key_here
 ```
 
 ### 3. One Command run:-
