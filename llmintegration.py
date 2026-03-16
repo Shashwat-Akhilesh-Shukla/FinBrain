@@ -1,7 +1,8 @@
 from vectordb_storage import store_pdfs_in_pinecone, query_db
-from krutrim_cloud import KrutrimCloud
+import google.generativeai as genai
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 vector_op = []
 
@@ -14,17 +15,15 @@ if __name__ == "__main__":
     for res in results:
         vector_op.append(res)
 
-client = KrutrimCloud(api_key=os.environ.get("API_KEY"))
-model_name = "DeepSeek-R1"
+    # Configure Gemini API
+    genai.configure(api_key=os.getenv("API_KEY"))
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
-query = "extract information relevant to revenue and ebidta in structured format"
-prompt = f"Document content:\n{vector_op}\n\nUser query: {query}"
+    query = "extract information relevant to revenue and ebidta in structured format"
+    prompt = f"Document content:\n{vector_op}\n\nUser query: {query}"
 
-messages = [
-    {"role": "user", "content": prompt}
-]
-try:
-    response_stream = client.chat.completions.create(model=model_name, messages=messages)
-    print(response_stream.choices[0].message.content)
-except Exception as exc:
-    print(f"Exception: {exc}")
+    try:
+        response = model.generate_content(prompt)
+        print(response.text)
+    except Exception as exc:
+        print(f"Exception: {exc}")

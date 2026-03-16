@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 from vectordb_storage import store_pdfs_in_pinecone, query_db
-from krutrim_cloud import KrutrimCloud
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,7 +32,7 @@ st.header("🔍 Query Financial Reports")
 # User Inputs
 company = st.text_input("🏢 Enter Company Name:", "bhartiairtel")
 query_text = st.text_area("📝 Enter Search Query (for Vector DB):", "revenue, EBITDA, profit, net profit")
-ai_query = st.text_area("🤖 Customize AI Query (for DeepSeek):", "Extract revenue and EBITDA insights in a structured table.")
+ai_query = st.text_area("🤖 Customize AI Query (for Gemini):", "Extract revenue and EBITDA insights in a structured table.")
 
 if st.button("🔍 Get Financial Insights"):
     if not company or not query_text:
@@ -40,7 +40,7 @@ if st.button("🔍 Get Financial Insights"):
     else:
         st.info(f"Processing query for '{company}'...")
 
-        # Query Qdrant (Vector DB)
+        # Query Pinecone (Vector DB)
         results = query_db(company, query_text)
 
         if not results:
@@ -49,16 +49,15 @@ if st.button("🔍 Get Financial Insights"):
             # Extract relevant content from results
             document_content = "\n\n".join([res["text"] for res in results])
 
-            # AI Processing (DeepSeek)
-            client = KrutrimCloud(api_key=os.getenv("API_KEY"))
-            model_name = "DeepSeek-R1"
+            # AI Processing (Gemini)
+            genai.configure(api_key=os.getenv("API_KEY"))
+            model = genai.GenerativeModel("gemini-2.5-flash")
 
             prompt = f"Document content:\n{document_content}\n\nUser query: {ai_query}"
-            messages = [{"role": "user", "content": prompt}]
 
             try:
-                response_stream = client.chat.completions.create(model=model_name, messages=messages)
-                structured_output = response_stream.choices[0].message.content
+                response = model.generate_content(prompt)
+                structured_output = response.text
                 st.subheader("📊 AI-Generated Financial Summary")
                 st.write(structured_output)
 

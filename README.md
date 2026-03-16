@@ -2,7 +2,7 @@
 
 FinBrain is an AI-powered financial document analysis tool that distills insights from earnings reports, investor call transcripts, and financial statements into actionable summaries.
 
-It fuses **Retrieval-Augmented Generation (RAG)** with **Qdrant** for high-performance vector search and leverages **DeepSeek R1 via Krutrim Cloud API** to generate structured financial intelligence.
+It fuses **Retrieval-Augmented Generation (RAG)** with **Pinecone** for high-performance vector search and leverages **Gemini 2.5 Flash** to generate structured financial intelligence.
 
 Built with **Streamlit** for an intuitive interface and containerized with **Docker**, FinBrain makes it effortless to upload PDFs, query them, and extract deep financial insights — all within seconds.
 
@@ -21,13 +21,13 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 ### 1. Document Ingestion & Vectorization
 - Upload PDFs of financial reports.
 - Each page is extracted and embedded using `all-MiniLM-L12-v2` via **Sentence Transformers**.
-- Embeddings are stored in **Qdrant** under company-specific payloads.
+- Embeddings are stored in **Pinecone** under company-specific payloads.
 
 ### 2. Vector Search
 - Query terms like `"revenue, EBITDA, profit"` search the vector DB for semantically similar paragraphs.
 
 ### 3. AI-Powered Summarization
-- DeepSeek R1 via Krutrim API processes top-matching results and generates a structured summary (e.g., financial tables).
+- Gemini 2.5 Flash processes top-matching results and generates a structured summary (e.g., financial tables).
 
 ---
 
@@ -37,8 +37,8 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 |--------------|--------------------------------------------|
 | Interface    | Streamlit                                  |
 | Embeddings   | Sentence-Transformers (`MiniLM-L12-v2`)    |
-| Vector DB    | Qdrant (self-hosted)                       |
-| LLM API      | DeepSeek R1 via Krutrim Cloud              |
+| Vector DB    | Pinecone                                   |
+| LLM API      | Gemini 2.5 Flash                           |
 | Parsing PDFs | PyMuPDF (`fitz`)                           |
 | Container    | Docker                                     |
 
@@ -50,7 +50,7 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 
 - Python 3.9+
 - Docker
-- Krutrim API Key (set in `.env`)
+- Gemini API Key (set in `.env` as `API_KEY`)
 
 ### 1. Clone the Repository
 
@@ -64,7 +64,7 @@ cd FinBrain
 Create a `.env` file with the following:
 
 ```env
-API_KEY=your_krutrim_api_key_here
+API_KEY=your_gemini_api_key_here
 ```
 
 ### 3. One Command run:-
@@ -76,7 +76,7 @@ docker compose up --build
 ## 🧪 Example Workflow
 
 1. Upload multiple PDFs of company earnings reports.
-2. Click **"Process PDFs"** — vectors are stored in Qdrant.
+2. Click **"Process PDFs"** — vectors are stored in Pinecone.
 3. Enter a semantic query like `"net profit"`.
 4. Customize the AI prompt or use the default.
 5. Click **"Get Financial Insights"** and get a structured, AI-generated summary.
@@ -98,8 +98,7 @@ docker compose up --build
 .
 ├── app.py                # Streamlit frontend
 ├── llmintegration.py     # Script to test LLM response separately
-├── vectordb_storage.py   # Qdrant integration and PDF processing
-├── krutrim_cloud.py      # Krutrim API wrapper
+├── vectordb_storage.py   # Pinecone integration and PDF processing
 ├── data/                 # Uploaded PDF storage
 ├── .env                  # API key config
 ├── requirements.txt
