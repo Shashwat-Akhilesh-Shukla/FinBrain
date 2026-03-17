@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial AI Analyst</title>
+    <!-- Use a premium font like Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-wrapper">
+                <span class="icon">📊</span>
+                <h1>Financial AI Analyst</h1>
+            </div>
+            <p class="subtitle">Intelligent insights for financial reports using specialized vector search and generative AI</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Sidebar / Upload Pane -->
+            <section class="panel glass-panel upload-panel">
+                <h2>📂 Upload Knowledge Base</h2>
+                <p>Add PDF financial reports to the Pinecone vector database.</p>
+                
+                <form id="upload-form" class="upload-form">
+                    <div class="file-drop-area" id="drop-area">
+                        <span class="upload-icon">📄</span>
+                        <span class="upload-msg">Drag & Drop files or <span class="browser-btn">Browse</span></span>
+                        <input type="file" id="file-input" name="files" multiple accept=".pdf" class="file-input">
+                    </div>
+                    
+                    <div id="file-list" class="file-list"></div>
+                    
+                    <button type="submit" id="upload-btn" class="btn primary-btn" disabled>
+                        <span>🔄 Process & Store PDFs</span>
+                    </button>
+                    <!-- Status message -->
+                    <div id="upload-status" class="status-msg"></div>
+                </form>
+            </section>
+
+            <!-- Main Query Pane -->
+            <section class="panel glass-panel query-panel">
+                <h2>🔍 Query Financial Reports</h2>
+                
+                <form id="query-form" class="query-form">
+                    <div class="input-group">
+                        <label for="company">🏢 Company Name</label>
+                        <input type="text" id="company" name="company" placeholder="e.g., bhartiairtel" value="bhartiairtel" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="query_text">📝 Search Target</label>
+                        <input type="text" id="query_text" name="query_text" placeholder="e.g., revenue, EBITDA, profit" value="revenue, EBITDA, profit, net profit" required>
+                        <small>Direct vector search target for Pinecone.</small>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="ai_query">🤖 AI Custom Query</label>
+                        <textarea id="ai_query" name="ai_query" rows="2" placeholder="e.g., Extract revenue and EBITDA into a table." required>Extract revenue and EBITDA insights in a structured table.</textarea>
+                        <small>Instruction passed to the Gemini engine over retrieved contexts.</small>
+                    </div>
+
+                    <button type="submit" id="query-btn" class="btn primary-btn shine-effect">
+                        <span>🔍 Generate Financial Insights</span>
+                    </button>
+                    <div id="query-status" class="status-msg"></div>
+                </form>
+
+                <!-- Results Area -->
+                <div id="results-area" class="results-area hidden">
+                    <div class="result-header">
+                        <h3>📊 AI-Generated Financial Summary</h3>
+                    </div>
+                    
+                    <!-- Formatted AI response -->
+                    <div id="ai-response" class="ai-response prose"></div>
+
+                    <!-- Raw Context Debug -->
+                    <div class="debug-wrapper">
+                        <button id="toggle-debug" class="btn secondary-btn small-btn">🛠️ View Raw Vector DB Matches</button>
+                        <div id="raw-matches" class="raw-matches hidden"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- For Markdown parsing -->
+</body>
+</html>
