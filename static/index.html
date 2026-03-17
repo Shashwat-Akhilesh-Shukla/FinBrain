@@ -3,40 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial AI Analyst</title>
+    <title>Financial AI Analyst | Morgan Stanley</title>
     <!-- Use a premium font like Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
 
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-wrapper">
+                <div class="title-group">
+                    <h1>Financial AI Analyst</h1>
+                    <p>Intelligent Insights for Institutional Financial Reporting</p>
+                </div>
+            </div>
+            <button id="theme-toggle" class="btn secondary-btn small-btn theme-toggle-btn">Dark Mode</button>
+        </div>
+    </header>
 
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo-wrapper">
-                <h1>Financial AI Analyst</h1>
-            </div>
-            <p class="subtitle">Intelligent insights for financial reports using specialized vector search and generative AI</p>
-        </header>
-
         <main class="main-content">
             <!-- Sidebar / Upload Pane -->
-            <section class="panel glass-panel upload-panel">
+            <section class="panel upload-panel">
                 <h2>Upload Knowledge Base</h2>
-                <p>Add PDF financial reports to the Pinecone vector database.</p>
+                <p>Add PDF financial reports to the secure vector database for AI-driven analysis.</p>
                 
                 <form id="upload-form" class="upload-form">
                     <div class="file-drop-area" id="drop-area">
-                        <span class="upload-icon">PDF</span>
+                        <div class="upload-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                        </div>
                         <span class="upload-msg">Drag & Drop files or <span class="browser-btn">Browse</span></span>
+                        <span class="upload-submsg">Supported formats: PDF</span>
                         <input type="file" id="file-input" name="files" multiple accept=".pdf" class="file-input">
                     </div>
                     
                     <div id="file-list" class="file-list"></div>
                     
                     <button type="submit" id="upload-btn" class="btn primary-btn" disabled>
-                        <span>Process & Store PDFs</span>
+                        <span>Process & Store Documents</span>
                     </button>
                     <!-- Status message -->
                     <div id="upload-status" class="status-msg"></div>
@@ -44,45 +58,49 @@
             </section>
 
             <!-- Main Query Pane -->
-            <section class="panel glass-panel query-panel">
-                <h2>Query Financial Reports</h2>
+            <section class="panel query-panel">
+                <h2>Security & Entity Analysis</h2>
+                <p>Query processed documents using specialized vector search and advanced generative AI.</p>
                 
                 <form id="query-form" class="query-form">
                     <div class="input-group">
-                        <label for="company">Company Name</label>
-                        <input type="text" id="company" name="company" placeholder="e.g., bhartiairtel" value="bhartiairtel" required>
+                        <label for="company">Target Entity (Ticker/Name)</label>
+                        <input type="text" id="company" name="company" placeholder="e.g., MSFT, AAPL, bhartiairtel" value="bhartiairtel" required>
                     </div>
 
                     <div class="input-group">
-                        <label for="query_text">Search Target</label>
-                        <input type="text" id="query_text" name="query_text" placeholder="e.g., revenue, EBITDA, profit" value="revenue, EBITDA, profit, net profit" required>
-                        <small>Direct vector search target for Pinecone.</small>
+                        <label for="query_text">Vector Search Target</label>
+                        <input type="text" id="query_text" name="query_text" placeholder="e.g., Q3 revenue, operating margin" value="revenue, EBITDA, profit, net profit" required>
+                        <small>Direct semantic search target for the vector database.</small>
                     </div>
 
                     <div class="input-group">
-                        <label for="ai_query">AI Custom Query</label>
-                        <textarea id="ai_query" name="ai_query" rows="2" placeholder="e.g., Extract revenue and EBITDA into a table." required>Extract revenue and EBITDA insights in a structured table.</textarea>
-                        <small>Instruction passed to the Gemini engine over retrieved contexts.</small>
+                        <label for="ai_query">Analytical Instruction</label>
+                        <textarea id="ai_query" name="ai_query" placeholder="e.g., Extract revenue growth drivers and state risks." required>Extract revenue and EBITDA insights in a structured table.</textarea>
+                        <small>Instruction passed to the LLM over retrieved contextual segments.</small>
                     </div>
 
                     <button type="submit" id="query-btn" class="btn primary-btn shine-effect">
-                        <span>Generate Financial Insights</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <span>Generate Intelligence Report</span>
                     </button>
                     <div id="query-status" class="status-msg"></div>
                 </form>
 
                 <!-- Results Area -->
                 <div id="results-area" class="results-area hidden">
-                    <div class="result-header">
-                        <h3>AI-Generated Financial Summary</h3>
+                    <div class="result-card">
+                        <div class="result-header" style="padding: 1.5rem 2rem 0; border-bottom: none; margin-bottom: 0;">
+                            <h3>Automated Intelligence Summary</h3>
+                        </div>
+                        
+                        <!-- Formatted AI response -->
+                        <div id="ai-response" class="ai-response prose"></div>
                     </div>
-                    
-                    <!-- Formatted AI response -->
-                    <div id="ai-response" class="ai-response prose"></div>
 
                     <!-- Raw Context Debug -->
                     <div class="debug-wrapper">
-                        <button id="toggle-debug" class="btn secondary-btn small-btn">View Raw Vector DB Matches</button>
+                        <button id="toggle-debug" class="btn secondary-btn small-btn">View Source Matches</button>
                         <div id="raw-matches" class="raw-matches hidden"></div>
                     </div>
                 </div>
@@ -91,7 +109,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/static/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- For Markdown parsing -->
+    <script src="/static/script.js"></script>
 </body>
 </html>

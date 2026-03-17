@@ -75,19 +75,25 @@ function updateFileList() {
         const item = document.createElement('div');
         item.className = 'file-item';
         
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'file-item-info';
+        infoDiv.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>${file.name}</span>
+            <span style="color:#94a3b8; font-size:0.8rem; margin-left:8px;">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+        `;
         
         const removeBtn = document.createElement('button');
         removeBtn.className = 'file-remove';
-        removeBtn.innerHTML = '×';
+        removeBtn.title = 'Remove file';
+        removeBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
         removeBtn.onclick = (e) => {
             e.stopPropagation();
             selectedFiles.splice(index, 1);
             updateFileList();
         };
 
-        item.appendChild(nameSpan);
+        item.appendChild(infoDiv);
         item.appendChild(removeBtn);
         fileList.appendChild(item);
     });
@@ -98,12 +104,16 @@ function showStatus(element, message, type) {
     element.className = `status-msg show status-${type}`;
 }
 
+const spinnerSvg = '<span class="spinner"></span>';
+const successSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+const errorSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+
 // Upload Form Submission
 uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (selectedFiles.length === 0) return;
 
-    showStatus(uploadStatus, '<span class="spinner">↻</span> Uploading & processing...', 'info');
+    showStatus(uploadStatus, `${spinnerSvg} Uploading & processing documents...`, 'info');
     uploadBtn.disabled = true;
 
     const formData = new FormData();
@@ -118,15 +128,15 @@ uploadForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            showStatus(uploadStatus, 'Successfully uploaded: ' + data.message, 'success');
+            showStatus(uploadStatus, `${successSvg} Successfully uploaded: ${data.message}`, 'success');
             selectedFiles = []; // Clear queue
             updateFileList();
         } else {
-            showStatus(uploadStatus, 'Error: ' + (data.detail || data.error || 'Upload failed'), 'error');
+            showStatus(uploadStatus, `${errorSvg} Error: ${data.detail || data.error || 'Upload failed'}`, 'error');
             uploadBtn.disabled = false;
         }
     } catch (error) {
-        showStatus(uploadStatus, 'Network error during upload.', 'error');
+        showStatus(uploadStatus, `${errorSvg} Network error during upload.`, 'error');
         uploadBtn.disabled = false;
     }
 });
@@ -141,11 +151,11 @@ queryForm.addEventListener('submit', async (e) => {
     const aiQueryText = document.getElementById('ai_query').value.trim();
 
     if (!company || !queryText) {
-        showStatus(queryStatus, 'Please enter company and query text.', 'error');
+        showStatus(queryStatus, `${errorSvg} Please enter entity and query text.`, 'error');
         return;
     }
 
-    showStatus(queryStatus, '<span class="spinner">↻</span> Searching Vector DB & generating insights...', 'info');
+    showStatus(queryStatus, `${spinnerSvg} Searching Vector DB & generating insights...`, 'info');
     queryBtn.disabled = true;
     resultsArea.classList.add('hidden');
 
@@ -163,7 +173,7 @@ queryForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            showStatus(queryStatus, 'Generation complete!', 'success');
+            showStatus(queryStatus, `${successSvg} Generation complete!`, 'success');
             
             // Render marked.js output if available, else standard text
             if (typeof marked !== 'undefined') {
@@ -177,10 +187,10 @@ queryForm.addEventListener('submit', async (e) => {
             
             resultsArea.classList.remove('hidden');
         } else {
-            showStatus(queryStatus, 'Error: ' + (data.detail || data.error || 'Query failed'), 'error');
+            showStatus(queryStatus, `${errorSvg} Error: ${data.detail || data.error || 'Query failed'}`, 'error');
         }
     } catch (error) {
-        showStatus(queryStatus, 'Failed to reach the server. Is it running?', 'error');
+        showStatus(queryStatus, `${errorSvg} Failed to reach the server. Is it running?`, 'error');
     } finally {
         queryBtn.disabled = false;
     }
@@ -189,7 +199,7 @@ queryForm.addEventListener('submit', async (e) => {
 function renderRawMatches(matches) {
     rawMatches.innerHTML = '';
     if (!matches || matches.length === 0) {
-        rawMatches.innerHTML = '<p class="match-text">No direct context matches returned.</p>';
+        rawMatches.innerHTML = '<p class="match-text">No direct context matches returned from Vector Search.</p>';
         return;
     }
 
@@ -199,7 +209,16 @@ function renderRawMatches(matches) {
         
         const meta = document.createElement('div');
         meta.className = 'match-meta';
-        meta.textContent = `Page ${match.page} | Score: ${match.score.toFixed(3)}`;
+        
+        const pageSpan = document.createElement('span');
+        pageSpan.textContent = `Page ${match.page}`;
+        
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'match-score';
+        scoreSpan.textContent = `Confidence: ${(match.score * 100).toFixed(1)}%`;
+        
+        meta.appendChild(pageSpan);
+        meta.appendChild(scoreSpan);
         
         const text = document.createElement('div');
         text.className = 'match-text';
@@ -215,8 +234,21 @@ function renderRawMatches(matches) {
 toggleDebugBtn.addEventListener('click', () => {
     rawMatches.classList.toggle('hidden');
     if (rawMatches.classList.contains('hidden')) {
-        toggleDebugBtn.innerHTML = 'View Raw Vector DB Matches';
+        toggleDebugBtn.innerHTML = 'View Source Matches';
     } else {
-        toggleDebugBtn.innerHTML = 'Hide Raw Matches';
+        toggleDebugBtn.innerHTML = 'Hide Source Matches';
     }
 });
+
+// Theme Toggle Logic
+const themeToggleBtn = document.getElementById('theme-toggle');
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        if (document.body.classList.contains('dark-mode')) {
+            themeToggleBtn.textContent = 'Light Mode';
+        } else {
+            themeToggleBtn.textContent = 'Dark Mode';
+        }
+    });
+}
