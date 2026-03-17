@@ -76,7 +76,7 @@ function updateFileList() {
         item.className = 'file-item';
         
         const nameSpan = document.createElement('span');
-        nameSpan.textContent = `📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        nameSpan.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
         
         const removeBtn = document.createElement('button');
         removeBtn.className = 'file-remove';
@@ -118,15 +118,15 @@ uploadForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            showStatus(uploadStatus, '✅ ' + data.message, 'success');
+            showStatus(uploadStatus, 'Successfully uploaded: ' + data.message, 'success');
             selectedFiles = []; // Clear queue
             updateFileList();
         } else {
-            showStatus(uploadStatus, '❌ Error: ' + (data.detail || data.error || 'Upload failed'), 'error');
+            showStatus(uploadStatus, 'Error: ' + (data.detail || data.error || 'Upload failed'), 'error');
             uploadBtn.disabled = false;
         }
     } catch (error) {
-        showStatus(uploadStatus, '❌ Network error during upload.', 'error');
+        showStatus(uploadStatus, 'Network error during upload.', 'error');
         uploadBtn.disabled = false;
     }
 });
@@ -141,7 +141,7 @@ queryForm.addEventListener('submit', async (e) => {
     const aiQueryText = document.getElementById('ai_query').value.trim();
 
     if (!company || !queryText) {
-        showStatus(queryStatus, '⚠️ Please enter company and query text.', 'error');
+        showStatus(queryStatus, 'Please enter company and query text.', 'error');
         return;
     }
 
@@ -163,7 +163,7 @@ queryForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            showStatus(queryStatus, '✅ Generation complete!', 'success');
+            showStatus(queryStatus, 'Generation complete!', 'success');
             
             // Render marked.js output if available, else standard text
             if (typeof marked !== 'undefined') {
@@ -177,10 +177,10 @@ queryForm.addEventListener('submit', async (e) => {
             
             resultsArea.classList.remove('hidden');
         } else {
-            showStatus(queryStatus, '❌ Error: ' + (data.detail || data.error || 'Query failed'), 'error');
+            showStatus(queryStatus, 'Error: ' + (data.detail || data.error || 'Query failed'), 'error');
         }
     } catch (error) {
-        showStatus(queryStatus, '❌ Failed to reach the server. Is it running?', 'error');
+        showStatus(queryStatus, 'Failed to reach the server. Is it running?', 'error');
     } finally {
         queryBtn.disabled = false;
     }
@@ -215,8 +215,8 @@ function renderRawMatches(matches) {
 toggleDebugBtn.addEventListener('click', () => {
     rawMatches.classList.toggle('hidden');
     if (rawMatches.classList.contains('hidden')) {
-        toggleDebugBtn.innerHTML = '🛠️ View Raw Vector DB Matches';
+        toggleDebugBtn.innerHTML = 'View Raw Vector DB Matches';
     } else {
-        toggleDebugBtn.innerHTML = '🛠️ Hide Raw Matches';
+        toggleDebugBtn.innerHTML = 'Hide Raw Matches';
     }
 });
