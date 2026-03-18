@@ -4,7 +4,7 @@ FinBrain is an AI-powered financial document analysis tool that distills insight
 
 It fuses **Retrieval-Augmented Generation (RAG)** with **Pinecone** for high-performance vector search and leverages **Gemini 2.5 Flash** to generate structured financial intelligence.
 
-Built with **Streamlit** for an intuitive interface and containerized with **Docker**, FinBrain makes it effortless to upload PDFs, query them, and extract deep financial insights — all within seconds.
+Built with **FastAPI** for a robust backend and **Vanilla JS/HTML** for an intuitive interface, and containerized with **Docker**, FinBrain makes it effortless to upload PDFs, query them, and extract deep financial insights — all within seconds.
 
 ---
 
@@ -17,6 +17,25 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 ---
 
 ## 🧠 How It Works
+
+### Architecture
+
+```mermaid
+graph TD
+    User([User]) -->|Upload PDF / Query| UI[Frontend: Vanilla JS/HTML]
+    UI -->|API Requests| API[Backend: FastAPI]
+    
+    API -->|1. Process PDFs| PDF[VectorDB Storage]
+    PDF -->|Extract Pages| Jina[Jina Embeddings API]
+    Jina -->|Embeddings| Pinecone[(Pinecone Vector DB)]
+    
+    API -->|2. Search Context| Pinecone
+    Pinecone -->|Relevant Text| API
+    
+    API -->|3. Construct Prompt| LLM[Gemini 2.5 Flash]
+    LLM -->|Generated Insights| API
+    API -->|Response| UI
+```
 
 ### 1. Document Ingestion & Vectorization
 - Upload PDFs of financial reports.
@@ -35,7 +54,8 @@ Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid
 
 | Layer        | Technology                                |
 |--------------|--------------------------------------------|
-| Interface    | Streamlit                                  |
+| Frontend     | Vanilla HTML/JS/CSS                        |
+| Backend API  | FastAPI                                    |
 | Embeddings   | Jina Embeddings API (`jina-embeddings-v2-base-en`)|
 | Vector DB    | Pinecone                                   |
 | LLM API      | Gemini 2.5 Flash                           |
@@ -98,9 +118,10 @@ docker compose up --build
 
 ```
 .
-├── app.py                # Streamlit frontend
+├── app.py                # FastAPI backend & API endpoints
 ├── llmintegration.py     # Script to test LLM response separately
 ├── vectordb_storage.py   # Pinecone integration and PDF processing
+├── static/               # Frontend assets (HTML, CSS, JS)
 ├── data/                 # Uploaded PDF storage
 ├── .env                  # API key config
 ├── requirements.txt
