@@ -10,9 +10,16 @@ Built with **FastAPI** for a robust backend and **Vanilla JS/HTML** for an intui
 
 ## 🚀 Demo
 
-Live Demo(Limited API credits) : https://finbrain.streamlit.app/
+Live Demo: https://finbrain-thlj.onrender.com
+
+secondary deployment: https://finbrain.streamlit.app
 
 Watch the demo : https://www.loom.com/share/2264c7d9bae844ff8d9ea22fd06fe25a?sid=60dc4659-647d-48ec-b4a6-9df2b8fe9a0c
+
+
+### 📊 Updated Visuals:
+<img width="1919" height="935" alt="Screenshot 2026-03-17 232744" src="https://github.com/user-attachments/assets/9acf800a-bf7f-4462-a888-cf85113d19ed" />
+
 
 ---
 
