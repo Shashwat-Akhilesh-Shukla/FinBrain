@@ -54,7 +54,19 @@ def extract_text_by_page(pdf_path):
     
     return pages
 
-def get_jina_embeddings(texts):
+def chunk_text(text, chunk_size=500, overlap=50):
+    chunks = []
+    start = 0
+    text_len = len(text)
+    while start < text_len:
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        if end >= text_len:
+            break
+        start += chunk_size - overlap
+    return chunks
+
+def get_jina_embeddings(texts, batch_size=32):
     if not texts:
         return []
 
@@ -63,24 +75,48 @@ def get_jina_embeddings(texts):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {os.getenv('JINA_API_KEY')}"
     }
-    data = {
-        "model": "jina-embeddings-v2-base-en",
-        "input": texts
-    }
 
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        json_resp = response.json()
+    all_embeddings = []
+    
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i+batch_size]
+        data = {
+            "model": "jina-embeddings-v2-base-en",
+            "input": batch
+        }
         
-        # ensure ordering
-        embeddings = [None] * len(texts)
-        for item in json_resp["data"]:
-            embeddings[item["index"]] = item["embedding"]
-        return embeddings
-    except Exception as e:
-        print(f"❌ Error fetching embeddings from Jina API: {e}")
-        return []
+        max_retries = 5
+        for retry in range(max_retries):
+            try:
+                response = requests.post(url, headers=headers, json=data)
+                
+                if response.status_code == 429:
+                    time.sleep(2 ** retry)
+                    continue
+                    
+                response.raise_for_status()
+                json_resp = response.json()
+                
+                # ensure ordering
+                batch_embeddings = [None] * len(batch)
+                for item in json_resp["data"]:
+                    batch_embeddings[item["index"]] = item["embedding"]
+                
+                all_embeddings.extend(batch_embeddings)
+                break
+            except requests.exceptions.HTTPError as e:
+                if response.status_code == 429 and retry < max_retries - 1:
+                    time.sleep(2 ** retry)
+                    continue
+                print(f"❌ Error fetching embeddings from Jina API: {e}")
+                all_embeddings.extend([None] * len(batch))
+                break
+            except Exception as e:
+                print(f"❌ Error fetching embeddings from Jina API: {e}")
+                all_embeddings.extend([None] * len(batch))
+                break
+
+    return all_embeddings
 
 def store_pdfs_in_pinecone(pdf_directory):
     vectors = []
@@ -100,21 +136,26 @@ def store_pdfs_in_pinecone(pdf_directory):
         pdf_path = os.path.join(pdf_directory, pdf_file)
         pages = extract_text_by_page(pdf_path)
 
-        # Batch embeddings processing for this PDF
-        page_texts = [page["text"] for page in pages]
+        chunks_info = []
+        for page in pages:
+            page_chunks = chunk_text(page["text"], chunk_size=500, overlap=50)
+            for chunk in page_chunks:
+                chunks_info.append({"text": chunk, "page": page["page"]})
+
+        chunk_texts = [chunk["text"] for chunk in chunks_info]
         
-        if not page_texts:
+        if not chunk_texts:
             new_processed_pdfs.add(pdf_file)
             continue
             
-        embeddings = get_jina_embeddings(page_texts)
+        embeddings = get_jina_embeddings(chunk_texts)
 
-        for _i, page in enumerate(pages):
+        for _i, chunk_info in enumerate(chunks_info):
             if _i >= len(embeddings) or not embeddings[_i]:
                 continue
                 
-            text = page["text"]
-            page_num = page["page"]
+            text = chunk_info["text"]
+            page_num = chunk_info["page"]
             embedding = embeddings[_i]
 
             vectors.append({
