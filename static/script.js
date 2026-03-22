@@ -175,12 +175,9 @@ queryForm.addEventListener('submit', async (e) => {
         if (response.ok) {
             showStatus(queryStatus, `${successSvg} Generation complete!`, 'success');
             
-            // Render marked.js output if available, else standard text
-            if (typeof marked !== 'undefined') {
-                aiResponse.innerHTML = marked.parse(data.answer);
-            } else {
-                aiResponse.innerHTML = `<pre>${data.answer}</pre>`;
-            }
+            // Configure and render with marked.js (GFM tables, breaks enabled)
+            marked.setOptions({ gfm: true, breaks: true });
+            aiResponse.innerHTML = marked.parse(data.answer);
 
             // Render raw matches
             renderRawMatches(data.raw_matches);
