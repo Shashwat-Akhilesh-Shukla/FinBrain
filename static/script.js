@@ -143,6 +143,9 @@ uploadForm.addEventListener('submit', async (e) => {
 
 // --- Query Logic ---
 
+// Configure marked.js ONCE at module level with GFM (tables) enabled
+marked.use({ gfm: true, breaks: true });
+
 queryForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -154,6 +157,12 @@ queryForm.addEventListener('submit', async (e) => {
         showStatus(queryStatus, `${errorSvg} Please enter entity and query text.`, 'error');
         return;
     }
+
+    console.group('[FinBrain] Query Request');
+    console.log('Company:', company);
+    console.log('Vector Search Target:', queryText);
+    console.log('AI Instruction:', aiQueryText);
+    console.groupEnd();
 
     showStatus(queryStatus, `${spinnerSvg} Searching Vector DB & generating insights...`, 'info');
     queryBtn.disabled = true;
@@ -170,23 +179,36 @@ queryForm.addEventListener('submit', async (e) => {
             })
         });
 
+        console.group('[FinBrain] API Response');
+        console.log('HTTP Status:', response.status, response.statusText);
+
         const data = await response.json();
+        console.log('Raw payload:', data);
 
         if (response.ok) {
+            console.log('--- LLM Answer (raw text) ---');
+            console.log(data.answer);
+            console.log('--- Raw Matches ---', data.raw_matches);
+            console.groupEnd();
+
             showStatus(queryStatus, `${successSvg} Generation complete!`, 'success');
-            
-            // Configure and render with marked.js (GFM tables, breaks enabled)
-            marked.setOptions({ gfm: true, breaks: true });
-            aiResponse.innerHTML = marked.parse(data.answer);
+
+            // Render markdown with GFM tables via marked.js
+            const rendered = marked.parse(data.answer);
+            console.debug('[FinBrain] Rendered HTML:', rendered);
+            aiResponse.innerHTML = rendered;
 
             // Render raw matches
             renderRawMatches(data.raw_matches);
             
             resultsArea.classList.remove('hidden');
         } else {
+            console.error('[FinBrain] API error payload:', data);
+            console.groupEnd();
             showStatus(queryStatus, `${errorSvg} Error: ${data.detail || data.error || 'Query failed'}`, 'error');
         }
     } catch (error) {
+        console.error('[FinBrain] Network/parse error:', error);
         showStatus(queryStatus, `${errorSvg} Failed to reach the server. Is it running?`, 'error');
     } finally {
         queryBtn.disabled = false;

@@ -4,11 +4,20 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import os
 import shutil
+import logging
 from vectordb_storage import store_pdfs_in_pinecone, query_db
 import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ── Debug Logging ────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger("finbrain")
 
 app = FastAPI(title="Financial RAG Pipeline API")
 
@@ -45,25 +54,40 @@ async def upload_files(files: list[UploadFile] = File(...)):
     if not saved_files:
         raise HTTPException(status_code=400, detail="No valid PDF files uploaded")
         
+    log.info("[UPLOAD] Saved files: %s", saved_files)
     try:
         # Run process that chunks and uploads matching texts into Pinecone
+        log.debug("[UPLOAD] Calling store_pdfs_in_pinecone('%s')", pdf_directory)
         store_pdfs_in_pinecone(pdf_directory)
+        log.info("[UPLOAD] Pinecone ingestion complete for %d file(s)", len(saved_files))
         return {"message": f"Successfully uploaded and processed {len(saved_files)} files to Pinecone."}
     except Exception as e:
+        log.exception("[UPLOAD] Error during Pinecone ingestion")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/query")
 async def process_query(req: QueryRequest):
+    log.info("[QUERY] Received: company=%r  query_text=%r", req.company, req.query_text)
+    log.debug("[QUERY] ai_query=%r", req.ai_query)
+
     if not req.company or not req.query_text:
         raise HTTPException(status_code=400, detail="Missing company name or query string")
         
     # Search Vector DB for context
+    log.debug("[QUERY] Calling query_db ...")
     results = query_db(req.company, req.query_text)
+    log.info("[QUERY] query_db returned %d result(s)", len(results) if results else 0)
+
+    if results:
+        for i, r in enumerate(results):
+            log.debug("[QUERY] Match #%d  page=%s  score=%s  text_preview=%r",
+                      i, r.get('page'), r.get('score'), r.get('text', '')[:120])
     
     if not results:
         raise HTTPException(status_code=404, detail="No relevant data found in reports.")
         
     document_content = "\n\n".join([res["text"] for res in results])
+    log.debug("[QUERY] Combined context length: %d chars", len(document_content))
     
     # Init Gemini and execute generative lookup
     genai.configure(api_key=os.getenv("API_KEY"))
@@ -89,6 +113,7 @@ async def process_query(req: QueryRequest):
         f"## Source Document Context\n\n{document_content}\n\n"
         f"## Analytical Instruction\n\n{req.ai_query}"
     )
+    log.debug("[QUERY] Prompt length: %d chars", len(prompt))
 
     generation_config = genai.GenerationConfig(
         temperature=0.2,
@@ -96,10 +121,14 @@ async def process_query(req: QueryRequest):
     )
 
     try:
+        log.debug("[QUERY] Calling Gemini model ...")
         response = model.generate_content(prompt, generation_config=generation_config)
+        log.info("[QUERY] Gemini response received, length=%d chars", len(response.text))
+        log.debug("[QUERY] RAW LLM OUTPUT:\n%s", response.text)
         return {
             "answer": response.text,
             "raw_matches": results
         }
     except Exception as exc:
+        log.exception("[QUERY] Error generating AI response")
         raise HTTPException(status_code=500, detail=f"Error generating AI response: {exc}")
